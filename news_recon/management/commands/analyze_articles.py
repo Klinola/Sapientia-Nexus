@@ -18,23 +18,33 @@ class Command(BaseCommand):
         articles = Article.objects.filter(is_analyzed=False)
 
         for article in articles[0:5]:
-            prompt = (f"Please analyze the following article and provide the following details:\n"
-          f"Article: {article.content}\n\n"
-          f"1. Related Cryptocurrencies:\n"
-          f"2. Sector or Domain:\n"
-          f"3. Importance (0-100):\n"
-          f"4. Urgency (0-100):\n"
-          f"5. Comments and Suggestions:")
+            prompt = f"""Please analyze the following article and provide the following details:
+            Article: {article.content}
+
+            1. Related Cryptocurrencies:
+            2. Sector or Domain:
+            3. Importance (0-100):
+            4. Urgency (0-100):
+            5. Comments and Suggestions:"""
             response = query_chatgpt(prompt, api_key)
-            analysis_result = response['choices'][0]['text']
 
-            lines = analysis_result.split('\n')
-            article.related_coins = lines[1].strip()  # "1. Related Cryptocurrencies:"
-            article.sector = lines[2].strip()        # "2. Sector or Domain:"
-            article.importance = int(lines[3].strip()) if lines[3].strip().isdigit() else 0  # "3. Importance (0-100):"
-            article.urgency = int(lines[4].strip()) if lines[4].strip().isdigit() else 0     # "4. Urgency (0-100):"
-            article.comments = lines[5].strip()     # "5. Comments and Suggestions:"
-            article.is_analyzed = True
-            article.save()
+            if response.status_code == 200:
+                try:
+                    response_data = response.json()
+                    messages = response_data['choices'][0]['message']['content']  
+                    print(messages)
+                    analysis_result = messages
 
-            self.stdout.write(self.style.SUCCESS(f'Article {article.id} analyzed successfully'))
+                    lines = analysis_result.split('\n')
+                    article.related_coins = lines[1].strip()  
+                    article.sector = lines[2].strip()        
+                    article.importance = int(lines[3].strip()) if lines[3].strip().isdigit() else 0 
+                    article.urgency = int(lines[4].strip()) if lines[4].strip().isdigit() else 0    
+                    article.comments = lines[5].strip() if len(lines) > 5 else ""    
+                    article.is_analyzed = True
+                    article.save()
+                    self.stdout.write(self.style.SUCCESS(f'Article {article.id} analyzed successfully'))
+                except (KeyError, IndexError) as e:
+                    self.stdout.write(self.style.ERROR(f'Error parsing response for article {article.id}: {e}'))
+            else:
+                self.stdout.write(self.style.ERROR(f'API request failed for article {article.id}: Status code {response.status_code}, Response: {response.text}'))
