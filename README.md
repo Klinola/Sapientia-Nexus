@@ -56,6 +56,8 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+Visit `http://127.0.0.1:8000/news/` for a raw view.
+
 ### 2. Celery Worker and Beat
 In separate terminal windows, start Celery worker and beat:
 ```bash
@@ -71,6 +73,12 @@ To manually trigger news collection and processing:
 python manage.py save_articles
 python manage.py remove_duplicates
 ```
+
+To manually analyse news using GPT-4
+```bash
+python manage.py analyze_articles
+```
+This will take 5 unanalyzed stories in the database and analyze them, you can modify the number of stories analyzed at a time by modifying `for article in articles[0:5]:` in this `analyse_articles.py`.
 
 ### Viewing the Data
 Access the Django admin panel or use pgAdmin to view the collected news data in the PostgreSQL database.
