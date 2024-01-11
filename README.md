@@ -68,7 +68,7 @@ celery -A Sapientia_Nexus beat -l info
 ### Collecting and Processing News
 To manually trigger news collection and processing:
 ```bash
-python manage.py fetch_articles
+python manage.py save_articles
 python manage.py remove_duplicates
 ```
 
