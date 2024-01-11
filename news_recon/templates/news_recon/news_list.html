@@ -1,0 +1,20 @@
+<!-- news_recon/templates/news_recon/news_list.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blockchain News</title>
+</head>
+<body>
+    <h1>Latest Blockchain News</h1>
+    <ul>
+        {% for article in articles %}
+            <li>
+                <h2><a href="{{ article.url }}">{{ article.title }}</a></h2>
+                <p>Published on: {{ article.publish_date }}</p>
+                <p>{{ article.summary }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
