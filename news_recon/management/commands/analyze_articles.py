@@ -1,4 +1,5 @@
 import configparser
+import re
 from django.core.management.base import BaseCommand
 from news_recon.models import Article
 from news_recon.chatgpt_api import query_chatgpt
@@ -25,7 +26,8 @@ class Command(BaseCommand):
             2. Sector or Domain:
             3. Importance (0-100):
             4. Urgency (0-100):
-            5. Comments and Suggestions:"""
+            5. Comments and Suggestions:
+            """
             response = query_chatgpt(prompt, api_key)
 
             if response.status_code == 200:
@@ -35,12 +37,12 @@ class Command(BaseCommand):
                     print(messages)
                     analysis_result = messages
 
-                    lines = analysis_result.split('\n')
-                    article.related_coins = lines[1].strip()  
-                    article.sector = lines[2].strip()        
-                    article.importance = int(lines[3].strip()) if lines[3].strip().isdigit() else 0 
-                    article.urgency = int(lines[4].strip()) if lines[4].strip().isdigit() else 0    
-                    article.comments = lines[5].strip() if len(lines) > 5 else ""    
+                    lines = re.sub(r'\d+\.\s', '', analysis_result).split('\n')
+                    article.related_coins = lines[0].strip()  
+                    article.sector = lines[1].strip()        
+                    article.importance = int(lines[2].strip()) if lines[2].strip().isdigit() else 0 
+                    article.urgency = int(lines[3].strip()) if lines[3].strip().isdigit() else 0    
+                    article.comments = lines[4].strip() if len(lines) > 5 else ""    
                     article.is_analyzed = True
                     article.save()
                     self.stdout.write(self.style.SUCCESS(f'Article {article.id} analyzed successfully'))
